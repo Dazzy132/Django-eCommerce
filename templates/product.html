@@ -36,9 +36,9 @@
             <p class="lead">
               {% if item.discount_price %}
               <span class="mr-1">
-                <del>${{ item.discount_price }}</del>
+                <del>${{ item.price }}</del>
               </span>
-              <span>${{ object.price }}</span>
+              <span>${{ object.discount_price }}</span>
               {% else %}
               <span>${{ object.price }}</span>
               {% endif %}

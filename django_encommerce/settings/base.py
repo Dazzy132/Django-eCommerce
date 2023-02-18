@@ -20,6 +20,9 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
 
+    # pip install django-crispy-forms (Для работы с allauth в login.html)
+    'crispy_forms',
+
     # Applications
     'core'
 ]
@@ -76,3 +79,8 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend'
 )
 SITE_ID = 1
+LOGIN_REDIRECT_URL = '/'
+
+
+# CRISPY FORMS (pip install django-crispy-forms)
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
