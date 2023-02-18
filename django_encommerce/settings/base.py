@@ -54,7 +54,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'django_encommerce.wsgi.application'
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
