@@ -1,4 +1,5 @@
 import os
+
 from decouple import config  # Работа с .env
 
 BASE_DIR = os.path.dirname(os.path.dirname(
@@ -24,7 +25,7 @@ INSTALLED_APPS = [
     'crispy_forms',
 
     # Applications
-    'core'
+    'core.apps.CoreConfig'
 ]
 
 MIDDLEWARE = [

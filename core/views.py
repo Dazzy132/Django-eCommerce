@@ -1,9 +1,12 @@
 from django.contrib import messages
-from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.generic import ListView, DetailView
+from django.views.generic import DetailView, ListView, View
 
-from .models import Item, OrderItem, Order
+from .models import Item, Order, OrderItem
 
 
 class HomeView(ListView):
@@ -24,6 +27,7 @@ class ItemDetailView(DetailView):
     template_name = 'product.html'
 
 
+@login_required
 def add_to_cart(request, slug):
     """Метод добавления в корзину товара по его slug"""
     item = get_object_or_404(Item, slug=slug)
@@ -49,11 +53,11 @@ def add_to_cart(request, slug):
                 request,
                 f'Количество товара было обновлено на: {order_item.quantity}',
             )
-            return redirect("core:product", slug=slug)
+            return redirect("core:order-summary")
         else:
             order.items.add(order_item)
             messages.info(request, 'Товар добавлен в вашу корзину')
-            return redirect("core:product", slug=slug)
+            return redirect("core:order-summary")
     # Если заказа нет, то создать его вручную и добавить товар в корзину
     else:
         ordered_date = timezone.now()
@@ -65,6 +69,7 @@ def add_to_cart(request, slug):
         return redirect("core:product", slug=slug)
 
 
+@login_required
 def remove_from_cart(request, slug):
     """Метод удаления товара из корзины (полностью)"""
     item = get_object_or_404(Item, slug=slug)
@@ -82,7 +87,7 @@ def remove_from_cart(request, slug):
             order.items.remove(order_item)
             order_item.delete()
             messages.info(request, "Этот товар был убран из вашей корзины")
-            return redirect("core:product", slug=slug)
+            return redirect("core:order-summary")
         # Если этого товара нет в корзине
         else:
             messages.info(request, "Этого предмета нет в вашей корзине")
@@ -91,6 +96,51 @@ def remove_from_cart(request, slug):
     else:
         messages.info(request, "У вас нет активного заказа")
         return redirect("core:product", slug=slug)
+
+
+@login_required
+def remove_single_item_from_cart(request, slug):
+    """Метод удаления одного товара из корзины"""
+    item = get_object_or_404(Item, slug=slug)
+    order_qs = Order.objects.filter(user=request.user, ordered=False)
+    if order_qs.exists():
+        order = order_qs[0]
+        # Если товар существует в корзине, то уменьшить его количество на 1.
+        # Если количество равно 0, то удалить его из заказа.
+        if order.items.filter(item__slug=item.slug).exists():
+            order_item = OrderItem.objects.filter(
+                item=item,
+                user=request.user,
+                ordered=False
+            )[0]
+            if order_item.quantity > 1:
+                order_item.quantity -= 1
+                order_item.save()
+            else:
+                order.items.remove(order_item)
+            messages.info(request, "Количество этого товара было обновлено")
+            return redirect("core:order-summary")
+        # Если этого товара нет в корзине
+        else:
+            messages.info(request, "Этого предмета нет в вашей корзине")
+            return redirect("core:product", slug=slug)
+    # Если не создан заказ
+    else:
+        messages.info(request, "У вас нет активного заказа")
+        return redirect("core:product", slug=slug)
+
+
+class OrderSummaryView(LoginRequiredMixin, View):
+    """Просмотреть корзину товаров"""
+
+    def get(self, *args, **kwargs):
+        try:
+            order = Order.objects.get(user=self.request.user, ordered=False)
+            context = {"object": order}
+            return render(self.request, 'order_summary.html', context)
+        except ObjectDoesNotExist:
+            messages.error(self.request, 'У вас нет активного заказа')
+            return redirect('core:home')
 
 
 def checkout(request):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Item, OrderItem, Order
+from .models import Item, Order, OrderItem
 
 
 @admin.register(Item)
@@ -15,7 +15,7 @@ class ItemAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['user', 'start_date', 'ordered_date', 'ordered']
+    list_display = ['id', 'user', 'start_date', 'ordered_date', 'ordered']
 
 
 @admin.register(OrderItem)
