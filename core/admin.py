@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Item, Order, OrderItem
+from .models import Item, Order, OrderItem, BillingAddress
 
 
 @admin.register(Item)
@@ -21,3 +21,9 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ['user', 'item', 'quantity', 'ordered']
+
+
+@admin.register(BillingAddress)
+class BillingAddressAdmin(admin.ModelAdmin):
+    list_display = ['user', 'street_address', 'apartment_address',
+                    'country', 'zip']

@@ -6,7 +6,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.generic import DetailView, ListView, View
 
-from .models import Item, Order, OrderItem
+from .forms import CheckoutForm
+from .models import Item, Order, OrderItem, BillingAddress
 
 
 class HomeView(ListView):
@@ -143,5 +144,47 @@ class OrderSummaryView(LoginRequiredMixin, View):
             return redirect('core:home')
 
 
-def checkout(request):
-    return render(request, "checkout.html")
+class CheckoutView(View):
+    """Форма для платежа"""
+
+    def get(self, *args, **kwargs):
+        """Показать форму при GET запросе"""
+        form = CheckoutForm()
+        context = {'form': form}
+        return render(self.request, 'checkout.html', context)
+
+    def post(self, *args, **kwargs):
+        form = CheckoutForm(self.request.POST or None)
+        try:
+            order = Order.objects.get(user=self.request.user, ordered=False)
+            # Если форма валидная - получить из неё данные. Далее создать
+            # платежный способ и привязать его к заказу.
+            if form.is_valid():
+                street_address = form.cleaned_data.get('street_address')
+                apartment_address = form.cleaned_data.get('apartment_address')
+                country = form.cleaned_data.get('country')
+                zip = form.cleaned_data.get('zip')
+                # TODO: Добавить функциональность для этих полей
+                # same_shipping_address = form.cleaned_data.get(
+                #     'same_shipping_address')
+                # save_info = form.cleaned_data.get('save_info')
+                payment_option = form.cleaned_data.get('payment_option')
+                billing_address = BillingAddress(
+                    user=self.request.user,
+                    street_address=street_address,
+                    apartment_address=apartment_address,
+                    country=country,
+                    zip=zip
+                )
+                billing_address.save()
+                order.billing_address = billing_address
+                order.save()
+                # TODO: Добавить перенаправление на выбранный способ оплаты
+                return redirect('core:checkout')
+
+            messages.warning(self.request, 'Не удалось оформить заказ')
+            return redirect('core:checkout')
+
+        except ObjectDoesNotExist:
+            messages.error(self.request, 'У вас нет активного заказа')
+            return redirect('core:home')

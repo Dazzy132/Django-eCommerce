@@ -24,6 +24,9 @@ INSTALLED_APPS = [
     # pip install django-crispy-forms (Для работы с allauth в login.html)
     'crispy_forms',
 
+    # pip install django-countries
+    'django_countries',
+
     # Applications
     'core.apps.CoreConfig'
 ]
