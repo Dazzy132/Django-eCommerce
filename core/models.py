@@ -96,17 +96,21 @@ class Order(models.Model):
     )
     # Дата оформления заказа (Будет установлено вручную)
     ordered_date = models.DateTimeField('Дата оформления заказа')
-    ordered = models.BooleanField('В заказе?', default=False)
+    ordered = models.BooleanField('Оплачено', default=False)
 
     # Платежный адрес (С формы оплаты добавляется)
     billing_address = models.ForeignKey(
         'BillingAddress', on_delete=models.SET_NULL, blank=True, null=True
     )
 
+    payment = models.ForeignKey(
+        'Payment', on_delete=models.SET_NULL, blank=True, null=True
+    )
+
     def __str__(self):
         return self.user.username
 
-    def get_total_summ(self):
+    def get_total_sum(self):
         """Итоговая сумма заказа в корзине"""
         total = 0
         for order_item in self.items.all():
@@ -121,6 +125,19 @@ class BillingAddress(models.Model):
     apartment_address = models.CharField(max_length=100)
     country = CountryField(multiple=False)
     zip = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.user.username
+
+
+class Payment(models.Model):
+    """Платёж"""
+    # stripe - сервис для обработки карт
+    stripe_charge_id = models.CharField(max_length=50)
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, blank=True, null=True)
+    amount = models.FloatField()
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.user.username

@@ -1,3 +1,5 @@
+import stripe
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -7,7 +9,10 @@ from django.utils import timezone
 from django.views.generic import DetailView, ListView, View
 
 from .forms import CheckoutForm
-from .models import Item, Order, OrderItem, BillingAddress
+from .models import Item, Order, OrderItem, BillingAddress, Payment
+
+# Настройка работы с банковскими картами
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class HomeView(ListView):
@@ -179,8 +184,17 @@ class CheckoutView(View):
                 billing_address.save()
                 order.billing_address = billing_address
                 order.save()
-                # TODO: Добавить перенаправление на выбранный способ оплаты
-                return redirect('core:checkout')
+
+                # Определение способа платежа по радио кнопке
+                if payment_option == 'S':
+                    return redirect('core:payment', payment_option='stripe')
+                elif payment_option == 'P':
+                    return redirect('core:payment', payment_optio='paypal')
+                else:
+                    messages.warning(
+                        self.request, 'Выбран неверный вариант оплаты'
+                    )
+                    return redirect('core:checkout')
 
             messages.warning(self.request, 'Не удалось оформить заказ')
             return redirect('core:checkout')
@@ -188,3 +202,98 @@ class CheckoutView(View):
         except ObjectDoesNotExist:
             messages.error(self.request, 'У вас нет активного заказа')
             return redirect('core:home')
+
+
+class PaymentView(View):
+    """Платёжная система (Карта/Paypal)"""
+
+    def get(self, *args, **kwargs):
+        """Отображение страницы платежа"""
+        try:
+            order = Order.objects.get(user=self.request.user, ordered=False)
+            context = {'order': order}
+            return render(self.request, "payment.html", context)
+        except ObjectDoesNotExist:
+            messages.warning(
+                self.request,
+                'У вас нет активного заказа, чтобы перейти к оплате'
+            )
+            return redirect('/')
+
+    def post(self, *args, **kwargs):
+        """Обработка платежа"""
+        try:
+            order = Order.objects.get(user=self.request.user, ordered=False)
+            # Получить токен с формы
+            token = self.request.POST.get('stripeToken')
+            # Цена идет в центах, по этому нужно умножить на 100
+            amount = int(order.get_total_sum() * 100)
+            # Создать платёж stripe
+            charge = stripe.Charge.create(
+                amount=amount,  # cents
+                currency="usd",
+                source=token
+            )
+
+            # Создание платежа Django
+            payment = Payment()
+            payment.stripe_charge_id = charge['id']
+            payment.user = self.request.user
+            payment.amount = order.get_total_sum()
+            payment.save()
+
+            # Прикрепление платежа к заказу
+            order.ordered = True
+            order.payment = payment
+            order.save()
+
+            messages.success(self.request, "Ваш заказ был успешно оплачен!")
+            return redirect("/")
+
+        except Order.DoesNotExist:
+            messages.error(self.request, 'У вас нет активного заказа')
+            return redirect('core:home')
+
+        # https://stripe.com/docs/api/errors/handling?lang=python
+        except stripe.error.CardError as e:
+            body = e.json_body
+            err = body.get('error', {})
+            messages.error(self.request, f"{err.get('message')}")
+            return redirect("/")
+
+        except stripe.error.RateLimitError as e:
+            # Too many requests made to the API too quickly
+            messages.error(self.request, "Rate limit error")
+            return redirect("/")
+
+        except stripe.error.InvalidRequestError as e:
+            # Invalid parameters were supplied to Stripe's API
+            messages.error(self.request, "Invalid parameters")
+            return redirect("/")
+
+        except stripe.error.AuthenticationError as e:
+            # Authentication with Stripe's API failed
+            # (maybe you changed API keys recently)
+            messages.error(self.request, "Not authenticated")
+            return redirect("/")
+
+        except stripe.error.APIConnectionError as e:
+            # Network communication with Stripe failed
+            messages.error(self.request, "Network error")
+            return redirect("/")
+
+        except stripe.error.StripeError as e:
+            # Display a very generic error to the user, and maybe send
+            # yourself an email
+            messages.error(
+                self.request,
+                "Something went wrong. You were not charged. Please try again."
+            )
+            return redirect("/")
+
+        except Exception as e:
+            # send an email to ourselves
+            messages.error(
+                self.request, "A serious error occurred. We have been notifed."
+            )
+            return redirect("/")

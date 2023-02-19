@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Item, Order, OrderItem, BillingAddress
+from .models import Item, Order, OrderItem, BillingAddress, Payment
 
 
 @admin.register(Item)
@@ -27,3 +27,8 @@ class OrderItemAdmin(admin.ModelAdmin):
 class BillingAddressAdmin(admin.ModelAdmin):
     list_display = ['user', 'street_address', 'apartment_address',
                     'country', 'zip']
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ['stripe_charge_id', 'user', 'amount', 'timestamp', ]

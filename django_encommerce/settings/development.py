@@ -43,5 +43,6 @@ DATABASES = {
     }
 }
 
+# https://dashboard.stripe.com/test/dashboard
 STRIPE_PUBLIC_KEY = ''
-STRIPE_SECRET_KEY = ''
+STRIPE_SECRET_KEY = config('STRIPE_LIVE_PUBLIC_KEY')
