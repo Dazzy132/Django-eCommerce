@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Item, Order, OrderItem, BillingAddress, Payment
+from .models import BillingAddress, Coupon, Item, Order, OrderItem, Payment
 
 
 @admin.register(Item)
@@ -32,3 +32,8 @@ class BillingAddressAdmin(admin.ModelAdmin):
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ['stripe_charge_id', 'user', 'amount', 'timestamp', ]
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ['code']

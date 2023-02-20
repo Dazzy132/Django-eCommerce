@@ -5,14 +5,9 @@
   <main>
     <div class="container">
 
-      <!--Navbar-->
-      <nav
-        class="navbar navbar-expand-lg navbar-dark mdb-color lighten-3 mt-3 mb-5">
-
-        <!-- Navbar brand -->
+      <nav class="navbar navbar-expand-lg navbar-dark mdb-color lighten-3 mt-3 mb-5">
         <span class="navbar-brand">Категории:</span>
 
-        <!-- Collapse button -->
         <button class="navbar-toggler" type="button" data-toggle="collapse"
                 data-target="#basicExampleNav"
                 aria-controls="basicExampleNav" aria-expanded="false"
@@ -20,10 +15,8 @@
           <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Collapsible content -->
         <div class="collapse navbar-collapse" id="basicExampleNav">
 
-          <!-- Links -->
           <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
               <a class="nav-link" href="#">All
@@ -41,7 +34,6 @@
             </li>
 
           </ul>
-          <!-- Links -->
 
           <form class="form-inline">
             <div class="md-form my-0">
@@ -50,48 +42,30 @@
             </div>
           </form>
         </div>
-        <!-- Collapsible content -->
-
       </nav>
-      <!--/.Navbar-->
 
-      <!--Section: Products v.3-->
       <section class="text-center mb-4">
-
-        <!--Grid row-->
         <div class="row wow fadeIn">
-
           {% for item in items %}
-            <!--Grid column-->
             <div class="col-lg-3 col-md-6 mb-4">
-              <!--Card-->
               <div class="card">
-
-                <!--Card image-->
                 <div class="view overlay">
-                  <img
-                    src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Vertical/12.jpg"
-                    class="card-img-top"
-                    alt="">
+                  {% comment %}<img src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Vertical/12.jpg" class="card-img-top" alt="">{% endcomment %}
+                  <img src="{{ item.image.url }}" class="card-img-top" alt="">
                   <a href="{{ item.get_absolute_url }}">
                     <div class="mask rgba-white-slight"></div>
                   </a>
                 </div>
-                <!--Card image-->
 
-                <!--Card content-->
                 <div class="card-body text-center">
-                  <!--Category & Title-->
                   <a href="" class="grey-text">
                     {# Специальный метод (Разницы нет) #}
                     <h5>{{ item.get_category_display }}</h5>
                   </a>
                   <h5>
                     <strong>
-                      <a href="{{ item.get_absolute_url }}"
-                         class="dark-grey-text">{{ item.title }}
-                        <span
-                          class="badge badge-pill {{ item.label.get_label_display }}">NEW</span>
+                      <a href="{{ item.get_absolute_url }}" class="dark-grey-text">{{ item.title }}
+                        <span class="badge badge-pill {{ item.label.get_label_display }}">NEW</span>
                       </a>
                     </strong>
                   </h5>
@@ -105,21 +79,12 @@
                       {% endif %}
                     </strong>
                   </h4>
-
                 </div>
-                <!--Card content-->
-
               </div>
-              <!--Card-->
             </div>
-            <!--Grid column-->
           {% endfor %}
-
         </div>
-        <!--Grid row-->
-
       </section>
-      <!--Section: Products v.3-->
 
       <!--Pagination-->
       {% if is_paginated %}

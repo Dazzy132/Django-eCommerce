@@ -16,6 +16,7 @@
           </tr>
           </thead>
           <tbody>
+          {# object - order из OrderSummaryView #}
           {% for order_item in object.items.all %}
             <tr>
               <th scope="row">{{ forloop.counter }}</th>
@@ -56,6 +57,13 @@
               </td>
             </tr>
           {% endfor %}
+
+          {% if object.coupon %}
+            <tr>
+              <td colspan="4"><b>Coupon:</b></td>
+              <td><b>-${{ object.coupon.amount }}</b></td>
+            </tr>
+          {% endif %}
 
           {% if object.get_total_sum %}
             <tr>

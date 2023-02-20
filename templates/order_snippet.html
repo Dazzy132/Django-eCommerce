@@ -12,13 +12,12 @@
         <div>
           <h6 class="my-0">{{ order_item.quantity }}
             x {{ order_item.item.title }}</h6>
-          <small class="text-muted">{{ order_item.item.description }}</small>
+          <small class="text-muted">{{ order_item.item.description|truncatewords:"15" }}</small>
         </div>
         <span class="text-muted">${{ order_item.get_final_price }}</span>
       </li>
     {% endfor %}
 
-{% comment %}
     {% if order.coupon %}
       <li class="list-group-item d-flex justify-content-between bg-light">
         <div class="text-success">
@@ -28,7 +27,7 @@
         <span class="text-success">-${{ order.coupon.amount }}</span>
       </li>
     {% endif %}
-{% endcomment %}
+
 
     <li class="list-group-item d-flex justify-content-between">
       <span>Total (USD)</span>
@@ -37,12 +36,11 @@
   </ul>
 
 
-{% comment %}
   {% if DISPLAY_COUPON_FORM %}
     <form class="card p-2" action="{% url 'core:add-coupon' %}" method="POST">
       {% csrf_token %}
       <div class="input-group">
-        {{ couponform.code }}
+        {{ coupon_form.code }}
         <div class="input-group-append">
           <button class="btn btn-secondary btn-md waves-effect m-0"
                   type="submit">Redeem
@@ -51,5 +49,5 @@
       </div>
     </form>
   {% endif %}
-{% endcomment %}
+
 </div>
