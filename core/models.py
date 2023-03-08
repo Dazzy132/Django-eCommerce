@@ -18,6 +18,11 @@ LABEL_CHOICES = {
     ("D", "danger"),
 }
 
+ADDRESS_CHOICES = {
+    ("B", "Billing"), # Адрес для выставления счетов
+    ("S", "Shipping"), # Адрес доставок
+}
+
 
 class Item(models.Model):
     """Модель товаров"""
@@ -94,7 +99,7 @@ class Order(models.Model):
         User, on_delete=models.CASCADE, verbose_name='Пользователь'
     )
     # Ссылочный код на заказ (для удобного поиска)
-    ref_code = models.CharField(max_length=25)
+    ref_code = models.CharField(max_length=25, blank=True, null=True)
     items = models.ManyToManyField(OrderItem, verbose_name='Товары')
     start_date = models.DateTimeField(
         'Дата создания заказа', auto_now_add=True
@@ -105,7 +110,12 @@ class Order(models.Model):
 
     # Платежный адрес (С формы оплаты добавляется)
     billing_address = models.ForeignKey(
-        'BillingAddress', on_delete=models.SET_NULL, blank=True, null=True
+        'Address', on_delete=models.SET_NULL, blank=True, null=True,
+        related_name='billing_address'
+    )
+    shipping_address = models.ForeignKey(
+        'Address', on_delete=models.SET_NULL, blank=True, null=True,
+        related_name='shipping_address'
     )
 
     payment = models.ForeignKey(
@@ -146,7 +156,7 @@ class Order(models.Model):
         return total
 
 
-class BillingAddress(models.Model):
+class Address(models.Model):
     """Платежный адрес пользователя"""
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     street_address = models.CharField(max_length=100)
@@ -154,8 +164,17 @@ class BillingAddress(models.Model):
     country = CountryField(multiple=False)
     zip = models.CharField(max_length=20)
 
+    # Тип адреса на который нужно сделать доставку (торговый/доставка)
+    address_type = models.CharField(max_length=1, choices=ADDRESS_CHOICES)
+    # Поле типа адреса по умолчанию
+    default = models.BooleanField(default=False)
+
     def __str__(self):
         return self.user.username
+
+    class Meta:
+        verbose_name = 'Адрес'
+        verbose_name_plural = 'Адресы'
 
 
 class Payment(models.Model):

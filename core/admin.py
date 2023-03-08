@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import (BillingAddress, Coupon, Item, Order, OrderItem, Payment,
+from .models import (Address, Coupon, Item, Order, OrderItem, Payment,
                      Refund)
 
 
@@ -26,11 +26,11 @@ class ItemAdmin(admin.ModelAdmin):
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'ordered', 'being_delivered', 'received',
                     'refund_requested', 'refund_granted', 'billing_address',
-                    'payment', 'coupon']
+                    'shipping_address', 'payment', 'coupon']
     list_filter = ['ordered', 'being_delivered', 'received',
                    'refund_requested', 'refund_granted']
     list_display_links = [
-        'user', 'billing_address', 'payment', 'coupon'
+        'user', 'billing_address', 'payment', 'coupon', 'shipping_address'
     ]
     search_fields = ['user__username', 'ref_code']
     actions = [make_refund_accepted]
@@ -41,10 +41,12 @@ class OrderItemAdmin(admin.ModelAdmin):
     list_display = ['user', 'item', 'quantity', 'ordered']
 
 
-@admin.register(BillingAddress)
-class BillingAddressAdmin(admin.ModelAdmin):
+@admin.register(Address)
+class AddressAdmin(admin.ModelAdmin):
     list_display = ['user', 'street_address', 'apartment_address',
-                    'country', 'zip']
+                    'country', 'zip', 'address_type', 'default']
+    list_filter = ['default', 'address_type', 'country']
+    search_fields = ['user', 'street_address', 'apartment_address', 'zip']
 
 
 @admin.register(Payment)
