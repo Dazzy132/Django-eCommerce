@@ -1,6 +1,15 @@
 from django.contrib import admin
 
-from .models import BillingAddress, Coupon, Item, Order, OrderItem, Payment
+from .models import (BillingAddress, Coupon, Item, Order, OrderItem, Payment,
+                     Refund)
+
+
+def make_refund_accepted(modeladmin, request, queryset):
+    """Собственный action"""
+    queryset.update(refund_requested=False, refund_granted=True)
+
+
+make_refund_accepted.short_description = 'Обновить статус возврата на возврат'
 
 
 @admin.register(Item)
@@ -15,7 +24,16 @@ class ItemAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'start_date', 'ordered_date', 'ordered']
+    list_display = ['id', 'user', 'ordered', 'being_delivered', 'received',
+                    'refund_requested', 'refund_granted', 'billing_address',
+                    'payment', 'coupon']
+    list_filter = ['ordered', 'being_delivered', 'received',
+                   'refund_requested', 'refund_granted']
+    list_display_links = [
+        'user', 'billing_address', 'payment', 'coupon'
+    ]
+    search_fields = ['user__username', 'ref_code']
+    actions = [make_refund_accepted]
 
 
 @admin.register(OrderItem)
@@ -37,3 +55,8 @@ class PaymentAdmin(admin.ModelAdmin):
 @admin.register(Coupon)
 class CouponAdmin(admin.ModelAdmin):
     list_display = ['code']
+
+
+@admin.register(Refund)
+class RefundAdmin(admin.ModelAdmin):
+    list_display = ['order', 'reason', 'email', 'accepted']

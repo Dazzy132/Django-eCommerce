@@ -1,3 +1,7 @@
+import random
+import string
+
+import requests
 import stripe
 from django.conf import settings
 from django.contrib import messages
@@ -8,8 +12,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.generic import DetailView, ListView, View
 
-from .forms import CheckoutForm, CouponForm
-from .models import BillingAddress, Coupon, Item, Order, OrderItem, Payment
+from .forms import CheckoutForm, CouponForm, RefundForm
+from .models import (BillingAddress, Coupon, Item, Order, OrderItem, Payment,
+                     Refund)
 
 # Настройка работы с банковскими картами
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -41,9 +46,7 @@ def add_to_cart(request, slug):
     # чтобы не создавать новый заказ, а обновлять существующий, и если текущего
     # заказа нет, то создать его
     order_item, created = OrderItem.objects.get_or_create(
-        item=item,
-        user=request.user,
-        ordered=False
+        item=item, user=request.user, ordered=False
     )
     # Получаем заказ по пользователю, который не завершён
     order_qs = Order.objects.filter(user=request.user, ordered=False)
@@ -83,9 +86,7 @@ def remove_from_cart(request, slug):
         # а затем удалить его в 2‑х моделях (В корзине и промежуточной модели)
         if order.items.filter(item__slug=item.slug).exists():
             order_item = OrderItem.objects.filter(
-                item=item,
-                user=request.user,
-                ordered=False
+                item=item, user=request.user, ordered=False
             )[0]
             order.items.remove(order_item)
             order_item.delete()
@@ -112,9 +113,7 @@ def remove_single_item_from_cart(request, slug):
         # Если количество равно 0, то удалить его из заказа.
         if order.items.filter(item__slug=item.slug).exists():
             order_item = OrderItem.objects.filter(
-                item=item,
-                user=request.user,
-                ordered=False
+                item=item, user=request.user, ordered=False
             )[0]
             if order_item.quantity > 1:
                 order_item.quantity -= 1
@@ -272,6 +271,7 @@ class PaymentView(View):
             # Прикрепление платежа к заказу
             order.ordered = True
             order.payment = payment
+            order.ref_code = create_ref_code()
             order.save()
 
             messages.success(self.request, "Ваш заказ был успешно оплачен!")
@@ -334,6 +334,13 @@ def get_coupon(request, code):
         messages.warning(request, 'Этого купона не существует')
 
 
+def create_ref_code():
+    """Создания реферального кода (Для поиска заказа) """
+    return ''.join(
+        random.choices(string.ascii_lowercase + string.digits, k=20)
+    )
+
+
 class AddCoupon(View):
     """Добавление купона"""
     def post(self, *args, **kwargs):
@@ -352,3 +359,40 @@ class AddCoupon(View):
             except ObjectDoesNotExist:
                 messages.info(self.request, 'У вас нет активного заказа')
                 return redirect('core:checkout')
+
+
+class RequestRefundView(View):
+    """Представление для возврата средств за товар"""
+    def get(self, *args, **kwargs):
+        """Показать форму"""
+        form = RefundForm()
+        context = {'form': form}
+        return render(self.request, 'request_refund.html', context=context)
+
+    def post(self, *args, **kwargs):
+        """Обработать форму"""
+        form = RefundForm(self.request.POST)
+        if form.is_valid():
+            ref_code = form.cleaned_data.get('ref_code')
+            message = form.cleaned_data.get('message')
+            email = form.cleaned_data.get('email')
+            try:
+                # Получить заказ по реферальному коду и указать что возврат
+                # средств поступил на обработку
+                order = Order.objects.get(ref_code=ref_code)
+                order.refund_requested = True
+                order.save()
+
+                # Зарегистрировать в БД запрос и заполнить его поля
+                refund = Refund()
+                refund.order = order
+                refund.reason = message
+                refund.email = email
+                refund.save()
+
+                messages.info(self.request, 'Ваш запрос на возврат получен')
+                return redirect('core:request-refund')
+
+            except ObjectDoesNotExist:
+                messages.info(self.request, 'По такому коду заказа не найдено')
+                return redirect('core:request-refund')

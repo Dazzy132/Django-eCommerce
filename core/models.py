@@ -93,8 +93,9 @@ class Order(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name='Пользователь'
     )
+    # Ссылочный код на заказ (для удобного поиска)
+    ref_code = models.CharField(max_length=25)
     items = models.ManyToManyField(OrderItem, verbose_name='Товары')
-    # Дата создания заказа
     start_date = models.DateTimeField(
         'Дата создания заказа', auto_now_add=True
     )
@@ -114,6 +115,22 @@ class Order(models.Model):
     coupon = models.ForeignKey(
         'Coupon', on_delete=models.SET_NULL, blank=True, null=True
     )
+
+    # 1. Товар добавлен в корзину
+    # 2. Добавить платежный адрес. Неудачная транзакция (Ошибка в Checkout)
+    # 3. Оплата (Обработка, упаковка товара)
+    # 4. Доставка заказа
+    # 5. Дата получения заказа (Процесс подписки получения товара)
+    # 6. Отслеживания количества возврата
+
+    # Заказ передан в доставку
+    being_delivered = models.BooleanField(default=False)
+    # Заказ получен
+    received = models.BooleanField(default=False)
+    # Зарегистрирован запрос на возврат денег
+    refund_requested = models.BooleanField(default=False)
+    # Возврат денег одобрен
+    refund_granted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username
@@ -162,3 +179,14 @@ class Coupon(models.Model):
 
     def __str__(self):
         return self.code
+
+
+class Refund(models.Model):
+    """Возврат средств"""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    reason = models.TextField()
+    accepted = models.BooleanField(default=False)
+    email = models.EmailField()
+
+    def __str__(self):
+        return f'{self.pk}'

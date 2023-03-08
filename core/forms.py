@@ -45,3 +45,10 @@ class CouponForm(forms.Form):
         "class": 'form-control', 'placeholder': 'Введите промокод',
         'aria-label': "Recipient's username", 'aria-describedby': "basic-addon2"
     }))
+
+
+class RefundForm(forms.Form):
+    """Форма для возврата денег"""
+    ref_code = forms.CharField()
+    message = forms.CharField(widget=forms.Textarea(attrs={'rows': 4}))
+    email = forms.EmailField()
