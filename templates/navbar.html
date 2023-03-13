@@ -4,7 +4,7 @@
   class="navbar fixed-top navbar-expand-lg navbar-light white scrolling-navbar">
   <div class="container">
 
-    <!-- Brand -->
+    <!--  -->
     <a class="navbar-brand waves-effect" href="/">
       <strong class="blue-text">Django-Shop</strong>
     </a>
@@ -20,23 +20,30 @@
     <!-- Links -->
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
+    {% with request.resolver_match.view_name as view_name %}
+
       <!-- Left -->
       <ul class="navbar-nav mr-auto">
-        <li class="nav-item active">
-          <a class="nav-link waves-effect" href="/">Home
-            <span class="sr-only">(current)</span>
+        <li class="nav-item {% if view_name  == 'core:home' %}active{% endif %}">
+          <a class="nav-link waves-effect" href="{% url 'core:home' %}">
+            Главная страница <span class="sr-only">(Текущая)</span>
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link waves-effect" href="/checkout">
-            Checkout</a>
+        <li class="nav-item {% if view_name  == 'core:checkout' %}active{% endif %}">
+          <a class="nav-link waves-effect" href="{% url 'core:checkout' %}">
+            Оформление заказа</a>
         </li>
+        <li class="nav-item {% if view_name  == 'core:request-refund' %}active{% endif %}">
+          <a class="nav-link waves-effect" href="{% url 'core:request-refund' %}">
+            Проблемы с товаром</a>
+        </li>
+
       </ul>
 
       <!-- Right -->
       <ul class="navbar-nav nav-flex-icons">
         {% if request.user.is_authenticated %}
-          <li class="nav-item">
+          <li class="nav-item {% if view_name  == 'core:order-summary' %}active{% endif %}">
             <a href="{% url 'core:order-summary' %}" class="nav-link waves-effect">
               {# Отобразить количество товаров в корзине пользователя #}
               <span class="badge red z-depth-1 mr-1">{{ request.user | cart_item_count }}</span>
@@ -58,6 +65,7 @@
           </a>
         {% endif %}
       </ul>
+    {% endwith %}
     </div>
 
   </div>

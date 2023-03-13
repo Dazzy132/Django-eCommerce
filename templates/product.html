@@ -5,12 +5,15 @@
   <main class="mt-5 pt-4">
     <div class="container dark-grey-text mt-5">
       <div class="row wow fadeIn">
+
         <div class="col-md-6 mb-4">
           {% if object.image %}
-            <img src="{{ object.image.url }}" class="img" alt="" style="max-height: 400px">
+            <img src="{{ object.image.url }}" class="img" alt=""
+                 style="max-height: 400px">
           {% else %}
-          <img src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Products/14.jpg"
-            class="img-fluid" alt="">
+            <img
+              src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Products/14.jpg"
+              class="img-fluid" alt="">
           {% endif %}
         </div>
 
@@ -19,79 +22,56 @@
             <div class="mb-3">
               <a href="">
                 <span class="badge purple mr-1">
-                  {{ object.get_category_display }}
+                  {{ object.category.name }}
                 </span>
               </a>
             </div>
 
             <p class="lead">
               {% if item.discount_price %}
-              <span class="mr-1">
+                <span class="mr-1">
                 <del>${{ item.price }}</del>
               </span>
-              <span>${{ object.discount_price }}</span>
+                <span>${{ object.discount_price }}</span>
               {% else %}
-              <span>${{ object.price }}</span>
+                <span>${{ object.price }}</span>
               {% endif %}
             </p>
 
-            <p class="lead font-weight-bold">Description</p>
+            <p class="lead font-weight-bold">Описание товара</p>
 
             <p>{{ item.description }}</p>
 
-            <form class="d-flex justify-content-left">
-              <!-- Default input -->
-              <input type="number" value="1" aria-label="Search"
-                     class="form-control" style="width: 100px">
+            <form class="d-flex justify-content-left"
+                  method="post"
+                  action="{% url 'core:add-to-cart' object.slug %}">
+              {% csrf_token %}
 
-{#              <button class="btn btn-primary btn-md my-0 p" type="submit">Add#}
-{#                to cart#}
-{#                <i class="fas fa-shopping-cart ml-1"></i>#}
-{#              </button>#}
+              <input type="number" value="1" aria-label="Search" name="amount" class="form-control" style="width: 100px">
 
+              <button class="btn btn-primary btn-md my-0 p" type="submit">
+                Добавить в корзину <i class="fas fa-shopping-cart ml-1"></i>
+              </button>
             </form>
 
-            <a href="{{ item.get_add_to_cart_url }}" class="btn btn-primary btn-md my-0 p" type="submit">
-              Добавить в корзину (Ссылка)
-                <i class="fas fa-shopping-cart ml-1"></i>
-            </a>
+            <div class="mt-3 inline">
 
-           <a href="{{ item.get_remove_from_cart_url }}" class="btn btn-danger btn-md my-0 p" type="submit">
-             Удалить из корзины
-                <i class="fas fa-shopping-cart ml-1"></i>
-            </a>
+              <a href="{{ item.get_remove_from_cart_url }}" class="btn btn-danger btn-md my-0 p" type="submit">
+                Удалить из корзины <i class="fas fa-shopping-cart ml-1"></i>
+              </a>
+            </div>
           </div>
         </div>
       </div>
 
-      <hr>
-
-      <div class="row d-flex justify-content-center wow fadeIn">
+      <div class="row d-flex justify-content-center wow fadeIn mt-4">
         <div class="col-md-6 text-center">
-          <h4 class="my-4 h4">Additional information</h4>
-          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Natus
-            suscipit modi sapiente illo soluta odit
-            voluptates,
-            quibusdam officia. Neque quibusdam quas a quis porro? Molestias
-            illo neque eum in laborum.</p>
-        </div>
-      </div>
-      <div class="row wow fadeIn">
-
-        <div class="col-lg-4 col-md-12 mb-4">
-          <img
-            src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Products/11.jpg"
-            class="img-fluid" alt="">
-        </div>
-        <div class="col-lg-4 col-md-6 mb-4">
-          <img
-            src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Products/12.jpg"
-            class="img-fluid" alt="">
-        </div>
-        <div class="col-lg-4 col-md-6 mb-4">
-          <img
-            src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Products/13.jpg"
-            class="img-fluid" alt="">
+          <h4 class="my-4 h4">Дополнительная информация</h4>
+          <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Natus
+            suscipit modi sapiente illo soluta odit voluptates, quibusdam officia.
+            Neque quibusdam quas a quis porro? Molestias illo neque eum in laborum.
+          </p>
         </div>
       </div>
 

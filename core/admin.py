@@ -1,7 +1,6 @@
 from django.contrib import admin
 
-from .models import (Address, Coupon, Item, Order, OrderItem, Payment,
-                     Refund)
+from .models import Address, Coupon, Item, Order, OrderItem, Payment, Refund, Category
 
 
 def make_refund_accepted(modeladmin, request, queryset):
@@ -62,3 +61,6 @@ class CouponAdmin(admin.ModelAdmin):
 @admin.register(Refund)
 class RefundAdmin(admin.ModelAdmin):
     list_display = ['order', 'reason', 'email', 'accepted']
+
+
+admin.site.register(Category)

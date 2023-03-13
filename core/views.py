@@ -1,7 +1,6 @@
 import random
 import string
 
-import requests
 import stripe
 from django.conf import settings
 from django.contrib import messages
@@ -13,8 +12,7 @@ from django.utils import timezone
 from django.views.generic import DetailView, ListView, View
 
 from .forms import CheckoutForm, CouponForm, RefundForm
-from .models import (Address, Coupon, Item, Order, OrderItem, Payment,
-                     Refund)
+from .models import Address, Coupon, Item, Order, OrderItem, Payment, Refund
 
 # Настройка работы с банковскими картами
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -30,6 +28,40 @@ class HomeView(ListView):
     context_object_name = 'items'
 
 
+class ItemByCategory(ListView):
+    model = Item
+    template_name = 'home.html'
+    paginate_by = 10
+    context_object_name = 'items'
+
+    def get_queryset(self):
+        return Item.objects.filter(category__slug=self.kwargs.get('slug'))
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['cat_selected_slug'] = self.kwargs.get('slug')
+        return context
+
+
+class Search(ListView):
+    template_name = 'home.html'
+    paginate_by = 10
+    context_object_name = 'items'
+
+    def get_queryset(self):
+        """Фильтруем товары, по полученному запросу, где название содержит
+         запрос полученный из поля ввода в home.html с названием q"""
+        return Item.objects.filter(title__icontains=self.request.GET.get('q'))
+
+    def get_context_data(self, *args, **kwargs):
+        """Добавляем в словарь значение, которое пришло. Это нужно для того,
+        чтобы работала пагинация. Чтобы она работала, необходимо передать
+        контекст как строку, где q будет равно запросу."""
+        context = super().get_context_data(*args, **kwargs)
+        context['q'] = f'q={self.request.GET.get("q")}&'
+        return context
+
+
 class ItemDetailView(DetailView):
     """Просмотр определенного товара
     context_object_name по умолчанию object. Тут не переопределён
@@ -42,25 +74,23 @@ class ItemDetailView(DetailView):
 def add_to_cart(request, slug):
     """Метод добавления в корзину товара по его slug"""
     item = get_object_or_404(Item, slug=slug)
-    # Метод get_or_create возвращает 2 переменных. Она нужна тут для того,
-    # чтобы не создавать новый заказ, а обновлять существующий, и если текущего
-    # заказа нет, то создать его
+    item_quantity = request.POST.get('amount', 1)
+
     order_item, created = OrderItem.objects.get_or_create(
-        item=item, user=request.user, ordered=False
+        item=item, user=request.user, ordered=False,
     )
-    # Получаем заказ по пользователю, который не завершён
+
     order_qs = Order.objects.filter(user=request.user, ordered=False)
-    # Если заказ есть, то проверяем на наличие этого товара в корзине. Если он
-    # есть, то обновить количество, если нет, то добавить его в корзину и
-    # перенаправить на страницу заказа
+
     if order_qs.exists():
         order = order_qs[0]
         if order.items.filter(item__slug=item.slug).exists():
-            order_item.quantity += 1
+            order_item.quantity += int(item_quantity)
             order_item.save()
             messages.info(request, f'Количество товара было обновлено')
             return redirect("core:order-summary")
         else:
+            order_item.quantity = item_quantity
             order.items.add(order_item)
             messages.info(request, 'Товар добавлен в вашу корзину')
             return redirect("core:order-summary")
@@ -119,7 +149,8 @@ def remove_single_item_from_cart(request, slug):
                 order_item.quantity -= 1
                 order_item.save()
             else:
-                order.items.remove(order_item)
+                order_item.delete()
+                # order.items.remove(order_item)
             messages.info(request, "Количество этого товара было обновлено")
             return redirect("core:order-summary")
         # Если этого товара нет в корзине
@@ -394,7 +425,8 @@ class PaymentView(View):
             order.ref_code = create_ref_code()
             order.save()
 
-            messages.success(self.request, "Ваш заказ был успешно оплачен!")
+            messages.success(self.request, f"Ваш заказ был успешно оплачен!")
+            messages.warning(self.request, f'Код покупки {order.ref_code}')
             return redirect("/")
 
         except Order.DoesNotExist:

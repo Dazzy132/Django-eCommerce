@@ -24,14 +24,33 @@ ADDRESS_CHOICES = {
 }
 
 
+class Category(models.Model):
+    name = models.CharField('Название', max_length=50)
+    slug = models.SlugField('slug', unique=True, null=False)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        """Метод для детального просмотра товара"""
+        return reverse('core:category', kwargs={"slug": self.slug})
+
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+
+
 class Item(models.Model):
     """Модель товаров"""
     title = models.CharField('Название', max_length=100)
     description = models.TextField('Описание')
     price = models.FloatField('Цена')  # Цена - поле с плавающей точкой
     discount_price = models.FloatField('Цена-Скидка', blank=True, null=True)
-    category = models.CharField(
-        'Категория', choices=CATEGORY_CHOICES, max_length=2
+    category = models.ForeignKey(
+        Category,
+        verbose_name='Категория',
+        related_name='items',
+        on_delete=models.CASCADE
     )
     label = models.CharField(
         'Этикетка', choices=LABEL_CHOICES, max_length=1
@@ -56,6 +75,9 @@ class Item(models.Model):
     def get_remove_from_cart_url(self):
         """Метод для удаления товара из корзины заказа"""
         return reverse("core:remove-from-cart", kwargs={"slug": self.slug})
+
+    class Meta:
+        ordering = ('id',)
 
 
 class OrderItem(models.Model):

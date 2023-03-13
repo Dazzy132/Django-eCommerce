@@ -1,11 +1,14 @@
 import os
 
-from decouple import config  # Работа с .env
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))))
 
-SECRET_KEY = config('SECRET_KEY')
+
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -82,9 +85,13 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend'
 )
+
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 
+# Фикс ошибки [WinError 10061] Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение
+EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 # CRISPY FORMS (pip install django-crispy-forms)
 CRISPY_TEMPLATE_PACK = 'bootstrap4'

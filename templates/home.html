@@ -1,11 +1,13 @@
 {% extends "base.html" %}
+{% load categories %}
 
 {% block content %}
 
   <main>
     <div class="container">
 
-      <nav class="navbar navbar-expand-lg navbar-dark mdb-color lighten-3 mt-3 mb-5">
+      <nav
+        class="navbar navbar-expand-lg navbar-dark mdb-color lighten-3 mt-3 mb-5">
         <span class="navbar-brand">Категории:</span>
 
         <button class="navbar-toggler" type="button" data-toggle="collapse"
@@ -18,29 +20,44 @@
         <div class="collapse navbar-collapse" id="basicExampleNav">
 
           <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-              <a class="nav-link" href="#">All
-                <span class="sr-only">(current)</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Shirts</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Sport wears</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Outwears</a>
-            </li>
+            {% with request.resolver_match.view_name as view_name %}
+              <li
+                class="nav-item {% if view_name  == 'core:home' %}active{% endif %}">
+                <a class="nav-link" href="/">Все категории</a>
+              </li>
+            {% endwith %}
 
+            {% get_categories as categories %}
+            {% for category in categories %}
+
+              {% if category.slug == cat_selected_slug %}
+                <li class="nav-item active">
+                  <a class="nav-link active"
+                     href="{% url 'core:category' category.slug %}">
+                    {{ category.name }}
+                  </a>
+                  <span class="sr-only">(current)</span>
+                </li>
+              {% else %}
+
+                <li class="nav-item">
+                  <a class="nav-link"
+                     href="{% url 'core:category' category.slug %}">
+                    {{ category.name }}
+                  </a>
+                </li>
+              {% endif %}
+            {% endfor %}
           </ul>
 
-          <form class="form-inline">
+         {# Чтобы работала форма отправки метод должен быть get, потому что получаем данные #}
+          <form class="form-inline" action="{% url 'core:search' %}" method="get">
             <div class="md-form my-0">
-              <input class="form-control mr-sm-2" type="text"
-                     placeholder="Search" aria-label="Search">
+              {# Поле поиска называется q #}
+              <input class="form-control mr-sm-2" type="text" name="q" placeholder="Поиск..." aria-label="Search">
             </div>
           </form>
+
         </div>
       </nav>
 
@@ -50,23 +67,21 @@
             <div class="col-lg-3 col-md-6 mb-4">
               <div class="card">
                 <div class="view overlay">
-                  {% comment %}<img src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Vertical/12.jpg" class="card-img-top" alt="">{% endcomment %}
-                  <img src="{{ item.image.url }}" class="card-img-top" alt="">
+                  <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.title }}">
                   <a href="{{ item.get_absolute_url }}">
                     <div class="mask rgba-white-slight"></div>
                   </a>
                 </div>
 
                 <div class="card-body text-center">
-                  <a href="" class="grey-text">
-                    {# Специальный метод (Разницы нет) #}
-                    <h5>{{ item.get_category_display }}</h5>
+                  <a href="{{ item.category.get_absolute_url }}" class="grey-text">
+                    <h5>{{ item.category.name }}</h5>
                   </a>
+
                   <h5>
                     <strong>
                       <a href="{{ item.get_absolute_url }}" class="dark-grey-text">{{ item.title }}
-                        <span class="badge badge-pill
-{{ item.get_label_display}}-color">NEW</span>
+                        <span class="badge badge-pill {{ item.get_label_display }}-color">NEW</span>
                       </a>
                     </strong>
                   </h5>

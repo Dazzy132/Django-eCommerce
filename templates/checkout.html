@@ -70,6 +70,7 @@
 
               <hr>
 
+            {# Форма для платежного адреса #}
               <h3>Платежный адрес</h3>
 
               <div class='hideable_billing_form'>
@@ -120,6 +121,7 @@
                 </div>
               {% endif %}
               <hr>
+            {# Конец формы для платежного адреса #}
 
               <h3>Тип оплаты</h3>
 
@@ -155,19 +157,16 @@
 {% endblock content %}
 
 {% block extra_scripts %}
-  {# JQUERY #}
   <script>
     {# Получить элементы форм #}
     let hideable_shipping_form = document.querySelector('.hideable_shipping_form');
     let hideable_billing_form = document.querySelector('.hideable_billing_form');
 
     {# Получить чекбоксы #}
-    let use_default_shipping = document.querySelector
-    ("input[name=use_default_shipping]");
-    let use_default_billing = document.querySelector
-    ("input[name=use_default_billing]");
+    let use_default_shipping = document.querySelector("input[name=use_default_shipping]");
+    let use_default_billing = document.querySelector("input[name=use_default_billing]");
 
-    {# Если изменен - изменять состояние поля #}
+    {# Прослушка #}
     use_default_shipping.addEventListener('change', function () {
       if (this.checked) {
         hideable_shipping_form.style.display = 'none';
@@ -183,6 +182,5 @@
         hideable_billing_form.style.display = 'block';
       }
     })
-
   </script>
 {% endblock extra_scripts %}
