@@ -45,22 +45,41 @@ STRIPE_LIVE_SECRET_KEY=sk_test_51MdJTtJvJzcBM...
 git clone git@github.com:Dazzy132/Django-eCommerce.git
 ```
 
+2) Создать и активировать виртуальное окружение
 ```shell
+python -m venv venv
 
+source venv/Scripts/activate (Для Windows)
+source venv/bin/activate (Для Linux и MacOS)
+```
+3)  Установить зависимости
+```shell
+pip install -r requirements.txt
+```
+4) Выполнить миграции
+```shell
+python manage.py makemigrations
+python manage.py migrate
+```
+5) Создать суперпользователя (Рекомендуется)
+```shell
+python manage.py createsuperuser --username=root --email=root@mail.ru
 ```
 
+6) Запустить сервер
 ```shell
-
+python manage.py runserver
 ```
 
-```shell
+-----------------
 
-```
+# Как выглядит сайт
 
-```shell
 
-```
-
-```shell
-
-```
+![Скрин](readme_images/1.png)
+![Скрин](readme_images/2.png)
+![Скрин](readme_images/3.png)
+![Скрин](readme_images/4.png)
+![Скрин](readme_images/5.png)
+![Скрин](readme_images/6.png)
+![Скрин](readme_images/7.png)
