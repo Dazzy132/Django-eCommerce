@@ -1,10 +1,12 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 
-from .models import Address, Coupon, Item, Order, OrderItem, Payment, Refund, Category
+from .models import (Address, Category, Coupon, Item, Order, OrderItem,
+                     Payment, Refund, UserProfile)
 
 
 def make_refund_accepted(modeladmin, request, queryset):
-    """Собственный action"""
+    """Собственный action для одобрения возврата на рефанд"""
     queryset.update(refund_requested=False, refund_granted=True)
 
 
@@ -13,12 +15,37 @@ make_refund_accepted.short_description = 'Обновить статус возв
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ["title", 'price', 'discount_price',
-                    'category', 'label', 'slug']
+    list_display = [
+        "title", 'get_image', 'price', 'discount_price', 'category', 'label',
+        'slug'
+    ]
     list_filter = ['category', 'price', 'label']
     list_editable = ['price', 'discount_price', 'category', 'label']
+    search_fields = ('title',)
     prepopulated_fields = {"slug": ('title',)}
+    readonly_fields = ['get_image']
     save_as = True
+
+    fieldsets = (
+        (None, {
+            "fields": ("title", "slug", 'category', 'label')
+        }),
+        ('Информация', {
+            "fields": ("description", ("image", "get_image"))
+        }),
+        (None, {
+            "fields": ("price", "discount_price")
+        }),
+    )
+
+    def get_image(self, obj):
+        if obj.image:
+            return mark_safe(
+                f'<img src="{obj.image.url}" width="50px" height="50px"'
+            )
+        return '---'
+
+    get_image.short_description = 'Фотография товара'
 
 
 @admin.register(Order)
@@ -63,4 +90,10 @@ class RefundAdmin(admin.ModelAdmin):
     list_display = ['order', 'reason', 'email', 'accepted']
 
 
-admin.site.register(Category)
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug']
+    prepopulated_fields = {"slug": ('name',)}
+
+
+admin.site.register(UserProfile)

@@ -4,6 +4,7 @@ import string
 import stripe
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,9 +12,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.generic import DetailView, ListView, View
 
-from .forms import CheckoutForm, CouponForm, RefundForm
-from .models import Address, Coupon, Item, Order, OrderItem, Payment, Refund
+from .forms import CheckoutForm, CouponForm, PaymentForm, RefundForm
+from .models import (Address, Coupon, Item, Order, OrderItem, Payment, Refund,
+                     UserProfile)
 
+User = get_user_model()
 # Настройка работы с банковскими картами
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -24,7 +27,7 @@ class HomeView(ListView):
     """
     model = Item
     template_name = 'home.html'
-    paginate_by = 10
+    paginate_by = 8
     context_object_name = 'items'
 
 
@@ -92,6 +95,7 @@ def add_to_cart(request, slug):
         else:
             order_item.quantity = item_quantity
             order.items.add(order_item)
+            order_item.save()
             messages.info(request, 'Товар добавлен в вашу корзину')
             return redirect("core:order-summary")
     # Если заказа нет, то создать его вручную и добавить товар в корзину
@@ -177,7 +181,7 @@ class OrderSummaryView(LoginRequiredMixin, View):
             return redirect('core:home')
 
 
-class CheckoutView(View):
+class CheckoutView(LoginRequiredMixin, View):
     """Форма для платежа"""
 
     def get(self, *args, **kwargs):
@@ -526,12 +530,15 @@ class RequestRefundView(View):
     """Представление для возврата средств за товар"""
     def get(self, *args, **kwargs):
         """Показать форму"""
-        form = RefundForm()
+        ref_code = self.request.GET.get('ref_code')
+        email = self.request.GET.get('email')
+        form = RefundForm(initial={'ref_code': ref_code, 'email': email})
         context = {'form': form}
         return render(self.request, 'request_refund.html', context=context)
 
     def post(self, *args, **kwargs):
         """Обработать форму"""
+        ref_c = self.request.POST.get('ref_code')
         form = RefundForm(self.request.POST)
         if form.is_valid():
             ref_code = form.cleaned_data.get('ref_code')
@@ -557,3 +564,36 @@ class RequestRefundView(View):
             except ObjectDoesNotExist:
                 messages.info(self.request, 'По такому коду заказа не найдено')
                 return redirect('core:request-refund')
+        messages.warning(self.request, 'Произошла ошибка')
+        return redirect('/')
+
+
+class UserProfileView(LoginRequiredMixin, ListView):
+    template_name = 'profile.html'
+    context_object_name = 'order'
+
+    def get_queryset(self):
+        return (
+            self.request.user.order_set
+            .select_related('user', 'billing_address', 'payment')
+            .prefetch_related('items')
+        )
+
+
+class OrderDetailView(LoginRequiredMixin, ListView):
+    template_name = 'order_detail.html'
+    context_object_name = 'order'
+
+    def get_queryset(self):
+        order = Order.objects.filter(
+            ref_code=self.kwargs.get('ref_code'), user=self.request.user
+        )
+        if order.exists():
+            return (
+                order
+                .select_related('payment', 'billing_address')
+                .prefetch_related('items')
+                .first()
+            )
+        messages.warning(self.request, 'Такого заказа нет')
+        return redirect('core:profile')

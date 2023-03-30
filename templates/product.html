@@ -8,7 +8,9 @@
 
         <div class="col-md-6 mb-4">
           {% if object.image %}
-            <img src="{{ object.image.url }}" class="img" alt=""
+{#            <img src="{{ object.image.url }}" class="img" alt=""#}
+{#                 style="max-height: 400px">#}
+            <img src="https://picsum.photos/300/400" class="img" alt=""
                  style="max-height: 400px">
           {% else %}
             <img
@@ -20,7 +22,7 @@
         <div class="col-md-6 mb-4">
           <div class="p-4">
             <div class="mb-3">
-              <a href="">
+              <a href="{{ object.category.get_absolute_url }}">
                 <span class="badge purple mr-1">
                   {{ object.category.name }}
                 </span>

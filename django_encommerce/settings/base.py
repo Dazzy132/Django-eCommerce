@@ -10,6 +10,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -31,7 +32,7 @@ INSTALLED_APPS = [
     'django_countries',
 
     # Applications
-    'core.apps.CoreConfig'
+    'core.apps.CoreConfig',
 ]
 
 MIDDLEWARE = [
@@ -80,7 +81,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Auth
-
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend'

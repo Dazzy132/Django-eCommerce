@@ -3,7 +3,7 @@
 
 {% block content %}
 
-  <main>
+  <main style="flex-grow: 1">
     <div class="container">
 
       <nav
@@ -50,11 +50,13 @@
             {% endfor %}
           </ul>
 
-         {# Чтобы работала форма отправки метод должен быть get, потому что получаем данные #}
-          <form class="form-inline" action="{% url 'core:search' %}" method="get">
+          {# Чтобы работала форма отправки метод должен быть get, потому что получаем данные #}
+          <form class="form-inline" action="{% url 'core:search' %}"
+                method="get">
             <div class="md-form my-0">
               {# Поле поиска называется q #}
-              <input class="form-control mr-sm-2" type="text" name="q" placeholder="Поиск..." aria-label="Search">
+              <input class="form-control mr-sm-2" type="text" name="q"
+                     placeholder="Поиск..." aria-label="Search">
             </div>
           </form>
 
@@ -66,22 +68,29 @@
           {% for item in items %}
             <div class="col-lg-3 col-md-6 mb-4">
               <div class="card">
-                <div class="view overlay">
-                  <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.title }}">
+                <div class="view overlay bg-image hover-overlay ripple shadow-1-strong rounded">
+{#                  <img src="{{ item.image.url }}" class="card-img-top"#}
+{#                       alt="{{ item.title }}">#}
+                  <img src="https://picsum.photos/200/30{{ forloop.counter }}" class="card-img-top"
+                       alt="{{ item.title }}">
                   <a href="{{ item.get_absolute_url }}">
-                    <div class="mask rgba-white-slight"></div>
+                    <div class="mask rgba-white-slight" style="background-color: hsla(0,4%,10%,0.2)"></div>
                   </a>
                 </div>
 
                 <div class="card-body text-center">
-                  <a href="{{ item.category.get_absolute_url }}" class="grey-text">
+                  <a href="{{ item.category.get_absolute_url }}"
+                     class="grey-text">
                     <h5>{{ item.category.name }}</h5>
                   </a>
 
                   <h5>
                     <strong>
-                      <a href="{{ item.get_absolute_url }}" class="dark-grey-text">{{ item.title }}
+                      <a href="{{ item.get_absolute_url }}"
+                         class="dark-grey-text">{{ item.title }}
+                        {% if item.discount_price %}
                         <span class="badge badge-pill {{ item.get_label_display }}-color">NEW</span>
+                        {% endif %}
                       </a>
                     </strong>
                   </h5>

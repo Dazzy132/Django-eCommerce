@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+  <main style="height: 100%">
+    <div class="container">
+      <div class="table-responsive">
+        <h2 class="my-5 h2 text-center">История заказов</h2>
+        <table class="table">
+
+          <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Оплачен</th>
+            <th scope="col">Номер заказа</th>
+            <th scope="col">Количество товаров</th>
+            <th scope="col">Цена</th>
+          </tr>
+          </thead>
+
+          <tbody>
+          {% for order_item in order %}
+            <tr>
+              <th scope="row">{{ forloop.counter }}</th>
+              <td>
+                {% if order_item.ordered %}
+                  <i class="fas fa-check"></i>
+                {% else %}
+                  <i class="fas fa-minus"></i>
+                {% endif %}
+              </td>
+              <td>
+                {% if order_item.ref_code %}
+                  <a href="{% url 'core:order-detail' order_item.ref_code %}">
+                    {{ order_item.ref_code }}
+                  </a>
+                {% else %}
+                  <a href="{% url 'core:order-summary' %}" class="blue-text">
+                    Появится после оплаты
+                  </a>
+                {% endif %}
+              </td>
+              <td>
+                {{ order_item.items.all.count }}
+              </td>
+              <td>
+               ${{ order_item.get_total_sum }}
+              </td>
+            </tr>
+
+          {% empty %}
+            <tr>
+              <td colspan="5"><b>Ты еще не делал заказов</b></td>
+            </tr>
+            <tr>
+              <td colspan="5" class="text-center">
+                <a href="/" class="btn btn-green">Сделать покупки</a>
+              </td>
+            </tr>
+          {% endfor %}
+
+
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+
+{% endblock content %}
+
+

@@ -9,6 +9,7 @@
 
       <form action="" method="post">
         {% csrf_token %}
+        <input type="hidden" name="ref_code" value="{{ request.GET.ref_code }}">
         {{ form|crispy }}
         <button type="submit" class="btn btn-primary">
           Отправить

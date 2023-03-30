@@ -1,21 +1,66 @@
-# django_project_boilerplate
+# eCommerce Project 
 
-A boilerplate Django project for quickly getting started
+----
 
-[![alt text](https://github.com/justdjango/django_project_boilerplate/blob/master/thumbnail.png "Logo")](https://www.youtube.com/watch?v=GEogao-tUec)
+## 📄 Описание проекта
+Django eCommerce - это полнофункциональный интернет-магазин, который обеспечивает легкий и удобный процесс покупок для клиентов. Регистрация на сайте реализована через библиотеку django-allauth. 
 
-Admin password: matt1234
+На странице оформления заказа пользователи могут указать место для доставки и выбрать оплату через сервис Stripe. Это обеспечивает безопасную и удобную оплату онлайн с помощью кредитных карт.
 
-Steps:
+В случае, если клиент по ошибке совершил платеж или не удовлетворен качеством товара, он может перейти в свой профиль, выбрать нужный заказ и оформить возврат средств.
 
-1. Pull this repository
-2. Create a virtualenv and install dependencies with `pip install -r requirements.txt`
-3. Configure your .env variables
-4. Rename your project with `python manage.py rename yourprojectname`
+## 🔧 Стек технологий
+[![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://www.python.org)
+[![Django](https://img.shields.io/badge/django-%23092E20.svg?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com)
+![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
+![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
 
-This project includes:
+- Python 3.7
+- Django 2.2
+- JavaScript
+- PostgreSQL
 
-1. The Django Debug Toolbar already setup
-2. Multiple settings modules setup for easily deploying
-3. Python-decouple for securely referencing keys, passwords and other settings.
-4. A custom Django command for renaming your project
+
+## Наполнение .env файла для работы проекта локально
+```dotenv
+SECRET_KEY="your-secret-key"
+
+# Необходимо получить ключи на сайте Stripe - https://stripe.com/
+STRIPE_LIVE_PUBLIC_KEY=sk_test_51MdJTtJvJzcBM...
+STRIPE_LIVE_SECRET_KEY=sk_test_51MdJTtJvJzcBM...
+```
+
+### Подробнее о ключах Stripe
+- Необходимо зарегистрироваться на сайте
+- Для получения ключей нужно пройти процесс аутентификации
+- Получить тестовые ключи
+![Stripe](readme_images/stripe.png)
+
+-------------
+
+# Как запустить проект
+
+1) Клонировать репозиторий
+```shell
+git clone git@github.com:Dazzy132/Django-eCommerce.git
+```
+
+```shell
+
+```
+
+```shell
+
+```
+
+```shell
+
+```
+
+```shell
+
+```
+
+```shell
+
+```

@@ -1,7 +1,7 @@
 from .base import *
 
 DEBUG = os.getenv('DEBUG')
-ALLOWED_HOSTS = ['ip-address', 'www.your-website.com']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -17,7 +17,7 @@ DATABASES = {
         'USER':  os.getenv('DB_USER'),
         'PASSWORD':  os.getenv('DB_PASSWORD'),
         'HOST':  os.getenv('DB_HOST'),
-        'PORT': ''
+        'PORT': os.getenv('DB_PORT')
     }
 }
 

@@ -16,6 +16,7 @@
   <link href="{% static 'css/mdb.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/style.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/mycss.css' %}" rel="stylesheet">
+  <link href="{% static 'css/style.css' %}" rel="stylesheet">
 
 </head>
 
@@ -40,7 +41,7 @@
 </div>
 
 {# Блок который будет изменяться на каждой странице #}
-{% block content %}{% endblock content %}
+{% block content %} {% endblock content %}
 
 {# Блоки если нужно дополнить основную страницу #}
 {% block extra_body %}{% endblock extra_body %}

@@ -2,7 +2,16 @@ html,
 body,
 header,
 .carousel {
-  height: 60vh;
+  /*min-height: 100vh;*/
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex-grow: 1;
 }
 
 @media (max-width: 740px) {

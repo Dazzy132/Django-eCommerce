@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+  <div class="container mt-4" style="flex-grow:1 ">
+    <div class="d-flex justify-content-between">
+      <h3>Заказ: <b>{{ order.ref_code }}</b></h3>
+
+      <form action="{% url 'core:request-refund' %}" method="get">
+        <input type="hidden" name="ref_code" value="{{ order.ref_code }}">
+        <input type="hidden" name="email" value="{{ request.user.email }}">
+        <button type="submit" class="btn btn-danger">Возврат средств</button>
+      </form>
+
+    </div>
+    <hr>
+    <div style="display: flex" class="mb-4">
+      <div class="mr-4">
+        <div class="d-flex flex-column">
+          <h4>Дата заказа:</h4>
+        </div>
+        <div>
+          <b>{{ order.ordered_date|date:"D, d.m.Y" }}</b>
+        </div>
+      </div>
+      <div class="mr-4">
+        <div class="d-flex flex-column">
+          <h4>Стоимость:</h4>
+        </div>
+        <div>
+          <b>${{ order.get_total_sum }}</b>
+        </div>
+      </div>
+      <div class="mr-4">
+        <div class="d-flex flex-column">
+          <h4>Статус заказа:</h4>
+        </div>
+        <div>
+          <b>{% if order.ordered %}Оплачен{% else %}Не оплачен{% endif %}</b>
+        </div>
+      </div>
+      <div class="mr-4">
+        <div class="d-flex flex-column">
+          <h4>Доставка:</h4>
+        </div>
+        <div>
+          <b>{{ order.billing_address.country.name }}, {{ order.billing_address.street_address|truncatechars:60 }}, {{ order.billing_address.zip }}</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="itc-slider" data-slider="itc-slider" data-loop="false"
+         data-autoplay="false">
+      <div class="itc-slider__wrapper">
+        <div class="itc-slider__items">
+          {% for order_item in order.items.all %}
+            <div class="itc-slider__item border">
+              <div class="flex flex-column">
+                <div>
+                  <img src="{{ order_item.item.image.url }}"
+                       class="card-img-top" alt="{{ order_item.item.title }}">
+                </div>
+                <div class="text-center">
+                  {{ order_item.item.title }} x {{ order_item.quantity }}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% if order.items.all.count > 5 %}
+        <button class="itc-slider__btn itc-slider__btn_prev"></button>
+        <button class="itc-slider__btn itc-slider__btn_next"></button>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'js/myscript.js' %}"></script>
+{% endblock %}
