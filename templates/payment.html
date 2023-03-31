@@ -165,7 +165,6 @@ button:hover {
 
     </div>
   </main>
-
 {% endblock content %}
 
 {% block extra_scripts %}
@@ -173,7 +172,8 @@ button:hover {
 <script nonce="">
 
   // Публичный ключ stripe для обработки формы
-  let stripe = Stripe('pk_test_51MdJTtJvJzcBMBvcCQqtb15QDmhNwlMyRNTIAXr74Bt69rGSr7iOCMaeJzTvbrgcPXnka96U4JXQSYJBCp4i2OOU00QQ2UxIX1');
+  let stripe = Stripe('{{ STRIPE_PUBLIC_KEY }}');
+
   let elements = stripe.elements();
   let style = {
     base: {

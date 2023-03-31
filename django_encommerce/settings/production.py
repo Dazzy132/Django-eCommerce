@@ -1,7 +1,8 @@
 from .base import *
 
 DEBUG = os.getenv('DEBUG')
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
+# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
+ALLOWED_HOSTS = ['*']
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -13,11 +14,11 @@ AUTH_PASSWORD_VALIDATORS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME':  os.getenv('DB_NAME'),
-        'USER':  os.getenv('DB_USER'),
-        'PASSWORD':  os.getenv('DB_PASSWORD'),
-        'HOST':  os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT')
+        'NAME':  os.getenv('DB_NAME', default='postgres'),
+        'USER':  os.getenv('POSTGRES_USER', default='postgres'),
+        'PASSWORD':  os.getenv('POSTGRES_PASSWORD', default='postgres'),
+        'HOST':  os.getenv('DB_HOST', default='db'),
+        'PORT': os.getenv('DB_PORT', default='5432')
     }
 }
 

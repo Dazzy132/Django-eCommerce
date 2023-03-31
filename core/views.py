@@ -189,11 +189,12 @@ class CheckoutView(LoginRequiredMixin, View):
         try:
             form = CheckoutForm()
             order = Order.objects.get(user=self.request.user, ordered=False)
+            print('fds')
             context = {
                 'form': form,
                 'order': order,
                 'coupon_form': CouponForm(),
-                'DISPLAY_COUPON_FORM': True
+                'DISPLAY_COUPON_FORM': True,
             }
 
             # Если у пользователя используется адрес доставки по умолчанию
@@ -374,11 +375,14 @@ class PaymentView(View):
     def get(self, *args, **kwargs):
         """Отображение страницы платежа"""
         try:
+
             order = Order.objects.get(user=self.request.user, ordered=False)
             # Нельзя перейти на страницу оплаты если не указал платежный адрес
             if order.billing_address:
                 context = {
-                    'order': order, 'DISPLAY_COUPON_FORM': False
+                    'order': order,
+                    'DISPLAY_COUPON_FORM': False,
+                    'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY
                 }
                 return render(self.request, "payment.html", context)
             else:

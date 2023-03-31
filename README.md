@@ -14,21 +14,24 @@ Django eCommerce - это полнофункциональный интерне�
 [![Django](https://img.shields.io/badge/django-%23092E20.svg?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com)
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
 ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white)
+![Bootstrap](https://img.shields.io/badge/bootstrap-%23563D7C.svg?style=for-the-badge&logo=bootstrap&logoColor=white)
 
 - Python 3.7
-- Django 2.2
+- Django 2.2 LTS
 - JavaScript
 - PostgreSQL
+- Docker
+- Stripe
 
 
-## Наполнение .env файла для работы проекта локально
-```dotenv
-SECRET_KEY="your-secret-key"
-
-# Необходимо получить ключи на сайте Stripe - https://stripe.com/
-STRIPE_LIVE_PUBLIC_KEY=sk_test_51MdJTtJvJzcBM...
-STRIPE_LIVE_SECRET_KEY=sk_test_51MdJTtJvJzcBM...
-```
+## Наполнение .env файла для работы проекта
+- Без Docker (PostgreSQL / SQLite)
+  - [.env-local](.env.example-local)
+- C Docker 
+  - [env-prod](.env.example-prod)
 
 ### Подробнее о ключах Stripe
 - Необходимо зарегистрироваться на сайте
@@ -38,7 +41,7 @@ STRIPE_LIVE_SECRET_KEY=sk_test_51MdJTtJvJzcBM...
 
 -------------
 
-# Как запустить проект
+# Как запустить проект без Docker
 
 1) Клонировать репозиторий
 ```shell
@@ -69,6 +72,17 @@ python manage.py createsuperuser --username=root --email=root@mail.ru
 6) Запустить сервер
 ```shell
 python manage.py runserver
+```
+
+# Как запустить проект с Docker
+
+```shell
+cd infra
+docker-compose up -d
+docker-compose exec web python manage.py makemigrations
+docker-compose exec web python manage.py migrate
+docker-compose exec web python manage.py collectstatic
+docker-compose exec web python manage.py createsuperuser --username=root --email=root@mail.ru
 ```
 
 -----------------
