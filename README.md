@@ -1,5 +1,5 @@
 # eCommerce Project 
-
+[![Django eCommerce](https://github.com/Dazzy132/Django-eCommerce/actions/workflows/django-ecommerce.yml/badge.svg)](https://github.com/Dazzy132/Django-eCommerce/actions/workflows/django-ecommerce.yml)
 ----
 
 ## 📄 Описание проекта
