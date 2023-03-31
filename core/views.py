@@ -12,9 +12,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.generic import DetailView, ListView, View
 
-from .forms import CheckoutForm, CouponForm, PaymentForm, RefundForm
-from .models import (Address, Coupon, Item, Order, OrderItem, Payment, Refund,
-                     UserProfile)
+from .forms import CheckoutForm, CouponForm, RefundForm
+from .models import Address, Coupon, Item, Order, OrderItem, Payment, Refund
 
 User = get_user_model()
 # Настройка работы с банковскими картами
@@ -25,43 +24,44 @@ class HomeView(ListView):
     """Домашняя страница (Отображение товаров)
     context_object_name по умолчанию object_list
     """
+
     model = Item
-    template_name = 'home.html'
+    template_name = "home.html"
     paginate_by = 8
-    context_object_name = 'items'
+    context_object_name = "items"
 
 
 class ItemByCategory(ListView):
     model = Item
-    template_name = 'home.html'
+    template_name = "home.html"
     paginate_by = 10
-    context_object_name = 'items'
+    context_object_name = "items"
 
     def get_queryset(self):
-        return Item.objects.filter(category__slug=self.kwargs.get('slug'))
+        return Item.objects.filter(category__slug=self.kwargs.get("slug"))
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['cat_selected_slug'] = self.kwargs.get('slug')
+        context["cat_selected_slug"] = self.kwargs.get("slug")
         return context
 
 
 class Search(ListView):
-    template_name = 'home.html'
+    template_name = "home.html"
     paginate_by = 10
-    context_object_name = 'items'
+    context_object_name = "items"
 
     def get_queryset(self):
         """Фильтруем товары, по полученному запросу, где название содержит
-         запрос полученный из поля ввода в home.html с названием q"""
-        return Item.objects.filter(title__icontains=self.request.GET.get('q'))
+        запрос полученный из поля ввода в home.html с названием q"""
+        return Item.objects.filter(title__icontains=self.request.GET.get("q"))
 
     def get_context_data(self, *args, **kwargs):
         """Добавляем в словарь значение, которое пришло. Это нужно для того,
         чтобы работала пагинация. Чтобы она работала, необходимо передать
         контекст как строку, где q будет равно запросу."""
         context = super().get_context_data(*args, **kwargs)
-        context['q'] = f'q={self.request.GET.get("q")}&'
+        context["q"] = f'q={self.request.GET.get("q")}&'
         return context
 
 
@@ -69,18 +69,21 @@ class ItemDetailView(DetailView):
     """Просмотр определенного товара
     context_object_name по умолчанию object. Тут не переопределён
     """
+
     model = Item
-    template_name = 'product.html'
+    template_name = "product.html"
 
 
 @login_required
 def add_to_cart(request, slug):
     """Метод добавления в корзину товара по его slug"""
     item = get_object_or_404(Item, slug=slug)
-    item_quantity = request.POST.get('amount', 1)
+    item_quantity = request.POST.get("amount", 1)
 
     order_item, created = OrderItem.objects.get_or_create(
-        item=item, user=request.user, ordered=False,
+        item=item,
+        user=request.user,
+        ordered=False,
     )
 
     order_qs = Order.objects.filter(user=request.user, ordered=False)
@@ -90,22 +93,21 @@ def add_to_cart(request, slug):
         if order.items.filter(item__slug=item.slug).exists():
             order_item.quantity += int(item_quantity)
             order_item.save()
-            messages.info(request, f'Количество товара было обновлено')
+            messages.info(request, f"Количество товара было обновлено")
             return redirect("core:order-summary")
         else:
             order_item.quantity = item_quantity
             order.items.add(order_item)
             order_item.save()
-            messages.info(request, 'Товар добавлен в вашу корзину')
+            messages.info(request, "Товар добавлен в вашу корзину")
             return redirect("core:order-summary")
     # Если заказа нет, то создать его вручную и добавить товар в корзину
     else:
         ordered_date = timezone.now()
-        order = Order.objects.create(
-            user=request.user, ordered_date=ordered_date
-        )
+        order = Order.objects.create(user=request.user,
+                                     ordered_date=ordered_date)
         order.items.add(order_item)
-        messages.info(request, 'Товар добавлен в вашу корзину')
+        messages.info(request, "Товар добавлен в вашу корзину")
         return redirect("core:order-summary")
 
 
@@ -175,10 +177,10 @@ class OrderSummaryView(LoginRequiredMixin, View):
         try:
             order = Order.objects.get(user=self.request.user, ordered=False)
             context = {"object": order}
-            return render(self.request, 'order_summary.html', context)
+            return render(self.request, "order_summary.html", context)
         except ObjectDoesNotExist:
-            messages.warning(self.request, 'У вас нет активного заказа')
-            return redirect('core:home')
+            messages.warning(self.request, "У вас нет активного заказа")
+            return redirect("core:home")
 
 
 class CheckoutView(LoginRequiredMixin, View):
@@ -189,81 +191,81 @@ class CheckoutView(LoginRequiredMixin, View):
         try:
             form = CheckoutForm()
             order = Order.objects.get(user=self.request.user, ordered=False)
-            print('fds')
+            print("fds")
             context = {
-                'form': form,
-                'order': order,
-                'coupon_form': CouponForm(),
-                'DISPLAY_COUPON_FORM': True,
+                "form": form,
+                "order": order,
+                "coupon_form": CouponForm(),
+                "DISPLAY_COUPON_FORM": True,
             }
 
             # Если у пользователя используется адрес доставки по умолчанию
             shipping_address_qs = Address.objects.filter(
-                user=self.request.user, address_type='S', default=True
+                user=self.request.user, address_type="S", default=True
             )
             if shipping_address_qs.exists():
                 context.update(
-                    {"default_shipping_address": shipping_address_qs[0]}
-                )
+                    {"default_shipping_address": shipping_address_qs[0]})
 
             # Если у пользователя используется платежный адрес по умолчанию
             billing_address_qs = Address.objects.filter(
-                user=self.request.user, address_type='B', default=True
+                user=self.request.user, address_type="B", default=True
             )
             if billing_address_qs.exists():
                 context.update(
-                    {"default_billing_address": billing_address_qs[0]}
-                )
+                    {"default_billing_address": billing_address_qs[0]})
 
-            return render(self.request, 'checkout.html', context)
+            return render(self.request, "checkout.html", context)
 
         except ObjectDoesNotExist:
-            messages.info(self.request, 'У вас нет активного заказа')
-            return redirect('core:home')
+            messages.info(self.request, "У вас нет активного заказа")
+            return redirect("core:home")
 
     def post(self, *args, **kwargs):
         form = CheckoutForm(self.request.POST or None)
         try:
             order = Order.objects.get(user=self.request.user, ordered=False)
             if form.is_valid():
-
                 use_default_shipping = form.cleaned_data.get(
-                    'use_default_shipping'
-                )
+                    "use_default_shipping")
                 # Если адрес доставки по умолчанию есть, то проверить его
                 if use_default_shipping:
                     address_qs = Address.objects.filter(
-                        user=self.request.user, address_type='S', default=True
+                        user=self.request.user, address_type="S", default=True
                     )
                     if address_qs.exists():
                         shipping_address = address_qs[0]
                         order.shipping_address = shipping_address
                         order.save()
                     else:
-                        messages.info(
-                            self.request, "Нет адреса доставки по умолчанию"
-                        )
-                        return redirect('core:checkout')
+                        messages.info(self.request,
+                                      "Нет адреса доставки по умолчанию")
+                        return redirect("core:checkout")
                 # Если нет по умолчанию, то просто обработать форму
                 else:
                     shipping_address1 = form.cleaned_data.get(
-                        'shipping_address')
+                        "shipping_address")
                     shipping_address2 = form.cleaned_data.get(
-                        'shipping_address2')
+                        "shipping_address2")
                     shipping_country = form.cleaned_data.get(
-                        'shipping_country')
-                    shipping_zip = form.cleaned_data.get('shipping_zip')
+                        "shipping_country")
+                    shipping_zip = form.cleaned_data.get("shipping_zip")
 
                     if is_valid_form(
-                            [shipping_address1, shipping_country,
-                             shipping_zip, shipping_country]):
+                            [
+                                shipping_address1,
+                                shipping_country,
+                                shipping_zip,
+                                shipping_country,
+                            ]
+                    ):
                         shipping_address = Address(
                             user=self.request.user,
                             street_address=shipping_address1,
                             apartment_address=shipping_address2,
                             country=shipping_country,
                             zip=shipping_zip,
-                            address_type='S'
+                            address_type="S",
                         )
                         shipping_address.save()
 
@@ -272,23 +274,23 @@ class CheckoutView(LoginRequiredMixin, View):
                         order.save()
 
                         set_default_shipping = form.cleaned_data.get(
-                            'set_default_shipping')
+                            "set_default_shipping"
+                        )
                         # Если поставил галочку сохранить
                         if set_default_shipping:
                             shipping_address.default = True
                             shipping_address.save()
 
                     else:
-                        messages.info(
-                            self.request, "Пожалуйста, заполните все поля"
-                        )
+                        messages.info(self.request,
+                                      "Пожалуйста, заполните все поля")
 
                 # Использовать платежный адрес по умолчанию
                 use_default_billing = form.cleaned_data.get(
-                    'use_default_billing')
+                    "use_default_billing")
                 # Адрес доставки совпадает с платежным
                 same_billing_address = form.cleaned_data.get(
-                    'same_billing_address')
+                    "same_billing_address")
 
                 # Если совпадает, то скопировать его
                 if same_billing_address:
@@ -296,7 +298,7 @@ class CheckoutView(LoginRequiredMixin, View):
                     # pk = None для удачного копирования
                     billing_address.pk = None
                     billing_address.save()
-                    billing_address.address_type = 'B'
+                    billing_address.address_type = "B"
                     billing_address.save()
                     order.billing_address = billing_address
                     order.save()
@@ -304,9 +306,7 @@ class CheckoutView(LoginRequiredMixin, View):
                 # Если по умолчанию, то получить его
                 elif use_default_billing:
                     address_qs = Address.objects.filter(
-                        user=self.request.user,
-                        address_type='B',
-                        default=True
+                        user=self.request.user, address_type="B", default=True
                     )
                     if address_qs.exists():
                         billing_address = address_qs[0]
@@ -314,26 +314,26 @@ class CheckoutView(LoginRequiredMixin, View):
                         order.save()
                     else:
                         messages.info(
-                            self.request, "Нет платежного адреса по умолчанию")
-                        return redirect('core:checkout')
+                            self.request, "Нет платежного адреса по умолчанию"
+                        )
+                        return redirect("core:checkout")
                 # Простая обработка формы если не указаны никакие галочки
                 else:
-                    billing_address1 = form.cleaned_data.get(
-                        'billing_address')
+                    billing_address1 = form.cleaned_data.get("billing_address")
                     billing_address2 = form.cleaned_data.get(
-                        'billing_address2')
-                    billing_country = form.cleaned_data.get(
-                        'billing_country')
-                    billing_zip = form.cleaned_data.get('billing_zip')
+                        "billing_address2")
+                    billing_country = form.cleaned_data.get("billing_country")
+                    billing_zip = form.cleaned_data.get("billing_zip")
 
-                    if is_valid_form([billing_address1, billing_country, billing_zip]):
+                    if is_valid_form(
+                            [billing_address1, billing_country, billing_zip]):
                         billing_address = Address(
                             user=self.request.user,
                             street_address=billing_address1,
                             apartment_address=billing_address2,
                             country=billing_country,
                             zip=billing_zip,
-                            address_type='B'
+                            address_type="B",
                         )
                         billing_address.save()
 
@@ -341,28 +341,29 @@ class CheckoutView(LoginRequiredMixin, View):
                         order.save()
 
                         set_default_billing = form.cleaned_data.get(
-                            'set_default_billing')
+                            "set_default_billing"
+                        )
                         if set_default_billing:
                             billing_address.default = True
                             billing_address.save()
 
                     else:
-                        messages.info(
-                            self.request, "Пожалуйста, заполните все поля")
+                        messages.info(self.request,
+                                      "Пожалуйста, заполните все поля")
 
-                payment_option = form.cleaned_data.get('payment_option')
+                payment_option = form.cleaned_data.get("payment_option")
 
-                if payment_option == 'S':
-                    return redirect('core:payment', payment_option='stripe')
-                elif payment_option == 'P':
-                    return redirect('core:payment', payment_option='paypal')
+                if payment_option == "S":
+                    return redirect("core:payment", payment_option="stripe")
+                elif payment_option == "P":
+                    return redirect("core:payment", payment_option="paypal")
                 else:
-                    messages.warning(
-                        self.request, "Выбран неверный вариант оплаты")
-                    return redirect('core:checkout')
+                    messages.warning(self.request,
+                                     "Выбран неверный вариант оплаты")
+                    return redirect("core:checkout")
 
-            messages.warning(self.request, 'Не удалось оформить заказ')
-            return redirect('core:checkout')
+            messages.warning(self.request, "Не удалось оформить заказ")
+            return redirect("core:checkout")
 
         except ObjectDoesNotExist:
             messages.warning(self.request, "У вас нет активного заказа")
@@ -375,46 +376,43 @@ class PaymentView(View):
     def get(self, *args, **kwargs):
         """Отображение страницы платежа"""
         try:
-
             order = Order.objects.get(user=self.request.user, ordered=False)
             # Нельзя перейти на страницу оплаты если не указал платежный адрес
             if order.billing_address:
                 context = {
-                    'order': order,
-                    'DISPLAY_COUPON_FORM': False,
-                    'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY
+                    "order": order,
+                    "DISPLAY_COUPON_FORM": False,
+                    "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
                 }
                 return render(self.request, "payment.html", context)
             else:
                 messages.warning(
-                    self.request, 'Вы не добавили адрес для выставления счетов'
+                    self.request, "Вы не добавили адрес для выставления счетов"
                 )
-                return redirect('core:checkout')
+                return redirect("core:checkout")
         except ObjectDoesNotExist:
             messages.warning(
                 self.request,
-                'У вас нет активного заказа, чтобы перейти к оплате'
+                "У вас нет активного заказа, чтобы перейти к оплате"
             )
-            return redirect('/')
+            return redirect("/")
 
     def post(self, *args, **kwargs):
         """Обработка платежа"""
         try:
             order = Order.objects.get(user=self.request.user, ordered=False)
             # Получить токен с формы
-            token = self.request.POST.get('stripeToken')
+            token = self.request.POST.get("stripeToken")
             # Цена идет в центах, по этому нужно умножить на 100
             amount = int(order.get_total_sum() * 100)
             # Создать платёж stripe
             charge = stripe.Charge.create(
-                amount=amount,  # cents
-                currency="usd",
-                source=token
+                amount=amount, currency="usd", source=token  # cents
             )
 
             # Создание платежа Django
             payment = Payment()
-            payment.stripe_charge_id = charge['id']
+            payment.stripe_charge_id = charge["id"]
             payment.user = self.request.user
             payment.amount = order.get_total_sum()
             payment.save()
@@ -434,51 +432,52 @@ class PaymentView(View):
             order.save()
 
             messages.success(self.request, f"Ваш заказ был успешно оплачен!")
-            messages.warning(self.request, f'Код покупки {order.ref_code}')
+            messages.warning(self.request, f"Код покупки {order.ref_code}")
             return redirect("/")
 
         except Order.DoesNotExist:
-            messages.warning(self.request, 'У вас нет активного заказа')
-            return redirect('core:home')
+            messages.warning(self.request, "У вас нет активного заказа")
+            return redirect("core:home")
 
         # https://stripe.com/docs/api/errors/handling?lang=python
         except stripe.error.CardError as e:
             body = e.json_body
-            err = body.get('error', {})
+            err = body.get("error", {})
             messages.warning(self.request, f"{err.get('message')}")
             return redirect("/")
 
-        except stripe.error.RateLimitError as e:
+        except stripe.error.RateLimitError:
             # Too many requests made to the API too quickly
             messages.warning(self.request, "Rate limit error")
             return redirect("/")
 
-        except stripe.error.InvalidRequestError as e:
+        except stripe.error.InvalidRequestError:
             # Invalid parameters were supplied to Stripe's API
             messages.warning(self.request, "Invalid parameters")
             return redirect("/")
 
-        except stripe.error.AuthenticationError as e:
+        except stripe.error.AuthenticationError:
             # Authentication with Stripe's API failed
             # (maybe you changed API keys recently)
             messages.warning(self.request, "Not authenticated")
             return redirect("/")
 
-        except stripe.error.APIConnectionError as e:
+        except stripe.error.APIConnectionError:
             # Network communication with Stripe failed
             messages.warning(self.request, "Network error")
             return redirect("/")
 
-        except stripe.error.StripeError as e:
+        except stripe.error.StripeError:
             # Display a very generic error to the user, and maybe send
             # yourself an email
             messages.warning(
                 self.request,
-                "Something went wrong. You were not charged. Please try again."
+                "Something went wrong. "
+                "You were not charged. Please try again.",
             )
             return redirect("/")
 
-        except Exception as e:
+        except Exception:
             # send an email to ourselves
             messages.warning(
                 self.request, "A serious error occurred. We have been notifed."
@@ -491,63 +490,64 @@ def get_coupon(request, code):
     try:
         return Coupon.objects.get(code=code)
     except ObjectDoesNotExist:
-        messages.warning(request, 'Этого купона не существует')
+        messages.warning(request, "Этого купона не существует")
 
 
 def create_ref_code():
-    """Создания реферального кода (Для поиска заказа) """
-    return ''.join(
-        random.choices(string.ascii_lowercase + string.digits, k=20)
-    )
+    """Создания реферального кода (Для поиска заказа)"""
+    return "".join(
+        random.choices(string.ascii_lowercase + string.digits, k=20))
 
 
 def is_valid_form(values):
     valid = True
 
     for field in values:
-        if field == '':
+        if field == "":
             valid = False
     return valid
 
 
 class AddCoupon(View):
     """Добавление купона"""
+
     def post(self, *args, **kwargs):
         form = CouponForm(self.request.POST or None)
         if form.is_valid():
             try:
-                code = form.cleaned_data.get('code')
-                order = Order.objects.get(user=self.request.user, ordered=False)
+                code = form.cleaned_data.get("code")
+                order = Order.objects.get(user=self.request.user,
+                                          ordered=False)
                 order.coupon = get_coupon(self.request, code)
                 if order.coupon:
                     order.save()
-                    messages.success(self.request, 'Купон успешно активирован')
-                    return redirect('core:checkout')
-                return redirect('core:checkout')
+                    messages.success(self.request, "Купон успешно активирован")
+                    return redirect("core:checkout")
+                return redirect("core:checkout")
 
             except ObjectDoesNotExist:
-                messages.info(self.request, 'У вас нет активного заказа')
-                return redirect('/')
+                messages.info(self.request, "У вас нет активного заказа")
+                return redirect("/")
 
 
 class RequestRefundView(View):
     """Представление для возврата средств за товар"""
+
     def get(self, *args, **kwargs):
         """Показать форму"""
-        ref_code = self.request.GET.get('ref_code')
-        email = self.request.GET.get('email')
-        form = RefundForm(initial={'ref_code': ref_code, 'email': email})
-        context = {'form': form}
-        return render(self.request, 'request_refund.html', context=context)
+        ref_code = self.request.GET.get("ref_code")
+        email = self.request.GET.get("email")
+        form = RefundForm(initial={"ref_code": ref_code, "email": email})
+        context = {"form": form}
+        return render(self.request, "request_refund.html", context=context)
 
     def post(self, *args, **kwargs):
         """Обработать форму"""
-        ref_c = self.request.POST.get('ref_code')
         form = RefundForm(self.request.POST)
         if form.is_valid():
-            ref_code = form.cleaned_data.get('ref_code')
-            message = form.cleaned_data.get('message')
-            email = form.cleaned_data.get('email')
+            ref_code = form.cleaned_data.get("ref_code")
+            message = form.cleaned_data.get("message")
+            email = form.cleaned_data.get("email")
             try:
                 # Получить заказ по реферальному коду и указать что возврат
                 # средств поступил на обработку
@@ -562,42 +562,39 @@ class RequestRefundView(View):
                 refund.email = email
                 refund.save()
 
-                messages.info(self.request, 'Ваш запрос на возврат получен')
-                return redirect('core:request-refund')
+                messages.info(self.request, "Ваш запрос на возврат получен")
+                return redirect("core:request-refund")
 
             except ObjectDoesNotExist:
-                messages.info(self.request, 'По такому коду заказа не найдено')
-                return redirect('core:request-refund')
-        messages.warning(self.request, 'Произошла ошибка')
-        return redirect('/')
+                messages.info(self.request, "По такому коду заказа не найдено")
+                return redirect("core:request-refund")
+        messages.warning(self.request, "Произошла ошибка")
+        return redirect("/")
 
 
 class UserProfileView(LoginRequiredMixin, ListView):
-    template_name = 'profile.html'
-    context_object_name = 'order'
+    template_name = "profile.html"
+    context_object_name = "order"
 
     def get_queryset(self):
-        return (
-            self.request.user.order_set
-            .select_related('user', 'billing_address', 'payment')
-            .prefetch_related('items')
-        )
+        return self.request.user.order_set.select_related(
+            "user", "billing_address", "payment"
+        ).prefetch_related("items")
 
 
 class OrderDetailView(LoginRequiredMixin, ListView):
-    template_name = 'order_detail.html'
-    context_object_name = 'order'
+    template_name = "order_detail.html"
+    context_object_name = "order"
 
     def get_queryset(self):
         order = Order.objects.filter(
-            ref_code=self.kwargs.get('ref_code'), user=self.request.user
+            ref_code=self.kwargs.get("ref_code"), user=self.request.user
         )
         if order.exists():
             return (
-                order
-                .select_related('payment', 'billing_address')
-                .prefetch_related('items')
+                order.select_related("payment", "billing_address")
+                .prefetch_related("items")
                 .first()
             )
-        messages.warning(self.request, 'Такого заказа нет')
-        return redirect('core:profile')
+        messages.warning(self.request, "Такого заказа нет")
+        return redirect("core:profile")

@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 import os
 import sys
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
-if __name__ == '__main__':
-    if os.getenv('DEBUG') == 'True':
+if __name__ == "__main__":
+    if os.getenv("DEBUG") == "True":
         os.environ.setdefault(
-            'DJANGO_SETTINGS_MODULE', 'django_encommerce.settings.development'
+            "DJANGO_SETTINGS_MODULE", "django_encommerce.settings.development"
         )
     else:
         os.environ.setdefault(
-            'DJANGO_SETTINGS_MODULE', 'django_encommerce.settings.production'
+            "DJANGO_SETTINGS_MODULE", "django_encommerce.settings.production"
         )
     try:
         from django.core.management import execute_from_command_line
