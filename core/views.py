@@ -80,6 +80,10 @@ def add_to_cart(request, slug):
     item = get_object_or_404(Item, slug=slug)
     item_quantity = request.POST.get("amount", 1)
 
+    if int(item_quantity) < 1:
+        messages.warning(request, 'Количество должно быть больше 1')
+        return redirect('core:product', slug)
+
     order_item, created = OrderItem.objects.get_or_create(
         item=item,
         user=request.user,
