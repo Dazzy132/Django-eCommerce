@@ -8,10 +8,8 @@
 
         <div class="col-md-6 mb-4">
           {% if object.image %}
-            <img src="{{ object.image.url }}" class="img" alt=""
-                 style="max-height: 400px">
-{#            <img src="https://picsum.photos/300/400" class="img" alt=""#}
-{#                 style="max-height: 400px">#}
+            <img src="{{ object.image.url }}" class="img" alt="" width="500px" height="300px">
+{#            <img src="https://picsum.photos/300/400" class="img" alt="" style="max-height: 400px">#}
           {% else %}
             <img
               src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Products/14.jpg"

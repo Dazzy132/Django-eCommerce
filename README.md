@@ -31,7 +31,7 @@ Django eCommerce - это полнофункциональный интерне�
 - Без Docker (PostgreSQL / SQLite)
   - [.env-local](.env.example-local)
 - C Docker 
-  - [env-prod](.env.example-prod)
+  - [env-prod](infra/.env.example-prod)
 
 ### Подробнее о ключах Stripe
 - Необходимо зарегистрироваться на сайте
